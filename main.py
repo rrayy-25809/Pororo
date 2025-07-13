@@ -1,12 +1,15 @@
 from flask import Flask, render_template, jsonify, request
 from flask_socketio import SocketIO, send
 import logging
+from llm import Model
 
 app = Flask(__name__, template_folder='client', static_folder='client/src')
 app.secret_key = 'LN$oaYB9-5KBT7G'
 app.logger.setLevel(logging.INFO)
+LLM = Model()
 socket_io = SocketIO(app)
 logger = app.logger
+LLM.load_file("")
 
 @app.route("/")
 def main():
@@ -14,13 +17,16 @@ def main():
 
 @app.route("/chat", methods=['POST'])
 def chat():
-    message = request.form["message"]
+    message = request.form.get("message")
     logger.info(message)
 
-    return jsonify({"response": "This is a simulated response from your LLM."})
+    answer = LLM.ask(message)
 
+    return jsonify({"response": answer})
+
+# 테스트 용 웹 소켓 예제, 사용 안 할듯
 @socket_io.on("message")
-def request_sck(message): # 웹소켓 예시: 채팅 프로그램
+def request_sck(message):
     logger.info(f"message: {message}")
     to_client = {} # 클라이언트에게 보낼 데이터
 
