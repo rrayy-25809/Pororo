@@ -1,27 +1,40 @@
-    const chatContainer = document.getElementById('chat-container');
-    const userInput = document.getElementById('user-input');
-    const sendBtn = document.getElementById('send-btn');
+const chatContainer = document.getElementById('chat-container');
+const userInput = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
 
-    function addMessage(content, className) {
-        const msg = document.createElement('div');
-        msg.classList.add('message', className);
-        msg.textContent = content;
-        chatContainer.appendChild(msg);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
+function addMessage(content, className) {
+    const msg = document.createElement('div');
+    msg.classList.add('message', className);
+    msg.textContent = content;
+    chatContainer.appendChild(msg);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
 
-    function sendMessage() {
+async function sendMessage() {
     const text = userInput.value.trim();
-    if (!text) return;
-        addMessage(text, 'user');
-        userInput.value = '';
-        // Simulated response
-        setTimeout(() => {
-        addMessage('This is a simulated response from your LLM.', 'bot');
-    }, 500);
-    }
+    userInput.value = '';
 
-    sendBtn.addEventListener('click', sendMessage);
-    userInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') sendMessage();
-    });
+    if (text) {
+        const formData = new FormData()
+
+        formData.append("message", text)
+        addMessage(text, 'user');
+
+        const response = await fetch("/chat", {
+            method: "POST",
+            body: formData,
+        });
+
+        if (response.ok) {
+            const json = await response.json();
+            addMessage(json["response"], 'bot');
+        }
+    } else {
+        return;
+    }
+}
+
+sendBtn.addEventListener('click', sendMessage);
+userInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendMessage();
+});
