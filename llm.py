@@ -1,3 +1,4 @@
+from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
 class Model:
@@ -6,7 +7,16 @@ class Model:
         pass
 
     def load_file(self, file):
-        file.load() # type: ignore
+        self.file = file
+        self.tokenizer = AutoTokenizer.from_pretrained("./pororo_model")
+        self.model = AutoModelForCausalLM.from_pretrained("./pororo_model")
 
     def ask(self, q):
-        return "This is a simulated response from your LLM."
+        return self.model.generate(
+            input_ids=torch.tensor([self.tokenizer.encode(q)]),
+            max_length=512,
+            num_return_sequences=1,
+            do_sample=True,
+            top_p=0.95,
+            top_k=50
+        )[0]
